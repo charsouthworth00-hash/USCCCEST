@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17142b">
+  <title>USCC Official Clock</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 24px; background: radial-gradient(circle at top, #35245e, #17142b 65%);
+      color: #fff; font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+    main {
+      width: min(100%, 560px); text-align: center; padding: 36px 24px;
+      border: 1px solid #7563a8; border-radius: 28px;
+      background: rgba(20, 17, 40, .88); box-shadow: 0 24px 80px #09071399;
+    }
+    .flag { font-size: 2rem; }
+    .eyebrow { color: #c5b8f3; letter-spacing: .16em; font-size: .78rem; font-weight: 800; }
+    #time { font-size: clamp(3.2rem, 13vw, 5.8rem); line-height: 1.1; font-weight: 800;
+      font-variant-numeric: tabular-nums; margin: 22px 0 8px; color: #c8b5ff; }
+    #date { font-size: clamp(1.25rem, 5vw, 1.8rem); font-weight: 650; }
+    .zone { display: inline-block; margin-top: 20px; padding: 7px 14px; border-radius: 999px;
+      background: #392b63; color: #e2d9ff; font-weight: 750; letter-spacing: .08em; }
+    .sub { color: #b8b2cc; margin-top: 22px; font-size: .9rem; }
+    footer { margin-top: 26px; color: #938ba9; font-size: .75rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="flag">🇺🇸</div>
+    <div class="eyebrow">THE UNITED STATES OF CJS CITY</div>
+    <div id="time" aria-live="off">--:--:--</div>
+    <div id="date">Loading CJS City date…</div>
+    <div class="zone">CEST · CJS EASTERN STANDARD TIME</div>
+    <div class="sub">Official USCC time — updating automatically</div>
+    <footer>
+      Based on your calendar rule: +1 year, +1 month, +1 day,<br>
+      and +1 hour, +1 minute, +1 second from local UK time.
+    </footer>
+  </main>
+  <script>
+    const timeEl = document.getElementById('time');
+    const dateEl = document.getElementById('date');
+
+    function getUSCCDate(now) {
+      // Apply calendar offsets separately, keeping the user's local time zone.
+      const result = new Date(now);
+      const day = result.getDate();
+
+      result.setFullYear(result.getFullYear() + 1);
+      // Clamp the day before changing month so month-end dates don't overflow.
+      const monthDay = result.getDate();
+      result.setDate(1);
+      result.setMonth(result.getMonth() + 1);
+      const lastDay = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
+      result.setDate(Math.min(monthDay, lastDay));
+
+      // Add one calendar day, then the CJS clock lead of 01:01:01.
+      result.setDate(result.getDate() + 1);
+      result.setTime(result.getTime() + 60 * 60 * 1000 + 60 * 1000 + 1000);
+      return result;
+    }
+
+    function updateClock() {
+      const uscc = getUSCCDate(new Date());
+      timeEl.textContent = uscc.toLocaleTimeString('en-GB', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      dateEl.textContent = uscc.toLocaleDateString('en-GB', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+    }
+
+    updateClock();
+    setInterval(updateClock, 250);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) updateClock();
+    });
+  </script>
+</body>
+</html>
